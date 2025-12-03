@@ -22,7 +22,7 @@ def perguntar():
     db = Chroma(persist_directory=CAMINHO_DB, embedding_function=funcao_embedding)
 
     resultados = db.similarity_search_with_relevance_scores(pergunta, k=4)
-    if len(resultados) == 0 or resultados[0][1] < 0.7:
+    if len(resultados) == 0 or resultados[0][1] < 0.6:
      print("Não conseguiu encontrar alguma informação relevante na base")
      return
     textos_resultado = []
