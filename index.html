@@ -1,59 +1,233 @@
-<div id="resposta" class="resposta"></div>
-
-<style>
-.resposta {
-    margin-top: 20px;
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    
-    /* 🟢 A solução */
-    white-space: pre-wrap;
-}
-</style>
-
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Chat RAG</title>
+    <title>RoboConsumidor • Chatbot CDC</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/4712/4712100.png">
     <style>
-        body { font-family: Arial; padding: 20px; background: #f4f4f4; }
-        #chat { width: 100%; max-width: 600px; margin: auto; }
-        textarea { width: 100%; height: 80px; }
-        button { padding: 10px 20px; margin-top: 10px; cursor: pointer; }
-        .resposta { margin-top: 20px; background: white; padding: 15px; border-radius: 8px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        body {
+            background: #0d1117;
+            color: #e6edf3;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 270px;
+            background: #161b22;
+            border-right: 1px solid #30363d;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #8ab4f8;
+        }
+
+        .sidebar p {
+            font-size: 14px;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            height: 65px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            gap: 12px;
+        }
+
+        .navbar img {
+            width: 40px;
+        }
+
+        .navbar h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* CHAT */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+        }
+
+        #resposta {
+            background: #1b1f24;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #3584ff;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            box-shadow: 0 0 10px rgba(0,0,0,0.25);
+        }
+
+        /* INPUT */
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid #30363d;
+            background: #161b22;
+            display: flex;
+            gap: 15px;
+        }
+
+        textarea {
+            flex: 1;
+            background: #0d1117;
+            color: #e6edf3;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 12px;
+            resize: none;
+            height: 80px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        textarea:focus {
+            border-color: #3584ff;
+            box-shadow: 0 0 8px rgba(53, 132, 255, 0.5);
+        }
+
+        button {
+            background: #3584ff;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            height: 80px;
+        }
+
+        button:hover {
+            background: #1f6fe0;
+        }
+        .bubble {
+            max-width: 70%;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            font-size: 15px;
+        }
+
+        .user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #6a0dad, #8a2be2);
+            color: white;
+        }
+
+        .bot {
+            align-self: flex-start;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+        }
+
+        #chatWindow {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 25px;
+            overflow-y: auto;
+            height: calc(100vh - 180px);
+        }
     </style>
 </head>
 <body>
 
-<div id="chat">
-    <h2>Chat com Base de Conhecimento</h2>
+    <div class="sidebar">
+        <h3>Sobre o Chatbot</h3>
+        <p>Este é o RoboConsumidor, um assistente inteligente criado para explicar e orientar sobre o Código de Defesa do Consumidor.</p>
 
-    <textarea id="pergunta" placeholder="Digite sua pergunta"></textarea>
-    <button onclick="enviar()">Enviar</button>
+        <h3>Dicas</h3>
+        <p>• Faça perguntas claras<br>• Cite situações reais<br>• Pergunte sobre direitos específicos</p>
+    </div>
 
-    <div id="resposta" class="resposta"></div>
-</div>
+    <div class="main">
 
-<script>
-    async function enviar() {
-        const pergunta = document.getElementById("pergunta").value;
+        <div class="navbar">
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png" alt="Mascote Robô">
+            <h1>RoboConsumidor – CDC Chat</h1>
+        </div>
 
-        const respostaDiv = document.getElementById("resposta");
-        respostaDiv.innerHTML = "Carregando...";
+        <div class="content" id="chatWindow"></div>
 
-        const req = await fetch("http://127.0.0.1:8000/perguntar", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pergunta })
+        <div class="input-area">
+            <textarea id="pergunta" placeholder="Digite sua pergunta..."></textarea>
+            <button onclick="enviar()" aria-label="Enviar" title="Enviar">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M3 20L21 12L3 4V10L15 12L3 14V20Z" fill="white"/>
+                </svg>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        function addMessage(text, sender) {
+            const chat = document.getElementById("chatWindow");
+            const bubble = document.createElement("div");
+            bubble.className = sender === "user" ? "bubble user" : "bubble bot";
+            bubble.innerText = text;
+            chat.appendChild(bubble);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        async function enviar() {
+            const pergunta = document.getElementById("pergunta").value;
+            if (!pergunta.trim()) return;
+
+            addMessage(pergunta, "user");
+            document.getElementById("pergunta").value = "";
+
+            addMessage("Carregando...", "bot");
+            const bubbles = document.querySelectorAll(".bubble.bot");
+            const loadingBubble = bubbles[bubbles.length - 1];
+
+            const req = await fetch("http://127.0.0.1:8000/perguntar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pergunta })
+            });
+
+            const data = await req.json();
+            loadingBubble.innerText = data.resposta;
+        }
+
+        document.getElementById("pergunta").addEventListener("keydown", function(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                enviar();
+            }
         });
-
-        const data = await req.json();
-        respostaDiv.innerHTML = data.resposta;
-    }
-</script>
+    </script>
 
 </body>
 </html>
